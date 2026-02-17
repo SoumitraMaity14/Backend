@@ -17,3 +17,4 @@ const userSchema=new Schema({
 }, 
 //timestamps use for createdAt and updatedAt
 {timestamps: true})  
+module.exports=mongoose.Model('User', userSchema)
