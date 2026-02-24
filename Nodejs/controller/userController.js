@@ -25,3 +25,22 @@ const createUser=async(req, res)=>{
         res.status(500).json({message: "Internal server error"})
     }
 }
+
+const loginUser=async(req, res)=>{
+    try{
+        const {email, password}=req.body;
+        const user=await User.findOne({email})
+        if(!user){
+            return res.status(404).json({message:"User not found"})
+        }
+        const isMatchPassword=await bcrypt.compare(password, user.password)
+        if(!isMatchPassword){
+            return res.status(404).json({message: "Password is not matched"})
+        }
+        const token=await res.cookies('authToken', token, cookieOptions)
+        return res.status(200).json({message:"login successfully"})
+    }
+    catch(error){
+        return res.status(500).json({message:"Inernal server error"})
+    }
+}
