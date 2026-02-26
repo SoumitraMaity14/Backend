@@ -35,9 +35,9 @@ const loginUser=async(req, res)=>{
         }
         const isMatchPassword=await bcrypt.compare(password, user.password)
         if(!isMatchPassword){
-            return res.status(404).json({message: "Password is not matched"})
+            return res.status(401).json({message: "Password is not matched"})
         }
-        const token=await res.cookies('authToken', token, cookieOptions)
+        const token=await res.cookie('authToken', token, cookieOptions)
         return res.status(200).json({message:"login successfully"})
     }
     catch(error){
