@@ -46,9 +46,26 @@ const getProjectById=async(req, res)=>{
     try{
         const project=await Project.findById(projectId)
         .populate({
-            te
+            path: 'columns',
+            model: 'Column',
+            populate:{
+               path:'task',
+               model: 'Task',
+               populate:{
+                path:'assignedTo',
+                model: 'User',
+                select: 'name email role'
+               } 
+            }
         })
+        .populate('owner', 'name email')
+        .populate('members', 'name email role')
 
+        return res.status(200).json(project)
+
+    }
+    catch(error){
+        return res.status(500).json({message: "internal Server error"})
     }
 }
 
