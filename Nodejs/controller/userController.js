@@ -1,46 +1,67 @@
 const User = require("../models/User");
 
-const createUser=async(req, res)=>{
-    const {name, email, password, role}=req.body
-    const existingUser=req.user.role;
-    if(role==="super-admin"){
-        return res.status(403).json({message:"super admin only creeate user via seeds only"})
+const createUser = async (req, res) => {
+    const { name, email, password, role } = req.body
+    const existingUser = req.user.role;
+    if (role === "super-admin") {
+        return res.status(403).json({ message: "super admin only creeate user via seeds only" })
     }
-    if(role==="admin"  && existingUser.role==="admin"){
-        return res.status(403).json({message:"admin canont create another admin account"})
+    if (role === "admin" && existingUser.role === "admin") {
+        return res.status(403).json({ message: "admin canont create another admin account" })
     }
-    try{
-         const user=await User.findOne({email})
-         if(user){
-            return res.status(404).json({message:"user is already exist"})
-         }
-        const newUser=new User({
+    try {
+        const user = await User.findOne({ email })
+        if (user) {
+            return res.status(404).json({ message: "user is already exist" })
+        }
+        const newUser = new User({
             name, email, password, role
-    })
+        })
         await newUser.save()
-        res.status(201).json({message: "user created successful"})
+        res.status(201).json({ message: "user created successful" })
     }
-    catch(error){
+    catch (error) {
         console.log("something Went wrong", error)
-        res.status(500).json({message: "Internal server error"})
+        res.status(500).json({ message: "Internal server error" })
     }
 }
 
-const loginUser=async(req, res)=>{
-    try{
-        const {email, password}=req.body;
-        const user=await User.findOne({email})
-        if(!user){
-            return res.status(404).json({message:"User not found"})
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email })
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
         }
-        const isMatchPassword=await bcrypt.compare(password, user.password)
-        if(!isMatchPassword){
-            return res.status(401).json({message: "Password is not matched"})
+        const isMatchPassword = await bcrypt.compare(password, user.password)
+        if (!isMatchPassword) {
+            return res.status(401).json({ message: "Password is not matched" })
         }
-        const token=await res.cookie('authToken', token, cookieOptions)
-        return res.status(200).json({message:"login successfully"})
+        const token = await res.cookie('authToken', token, cookieOptions)
+        return res.status(200).json({ message: "login successfully" })
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Inernal server error" })
+    }
+}
+
+const searchUser = async (req, res) => {
+    const { q } = req.query;
+    if (!q || q.length < 2) {
+        return res.status(400).json({ message: "Search character atleast have two charcter" })
+    }
+    try {
+        const search = {
+            $or: [{ name: { $regex: q, $options: 'i' } },
+            { email: { $regex: q, $options: 'i' } }
+            ]
+        
+        }
+        const user=await User.find(search)
+        return res.status(200).json(user)
     }
     catch(error){
-        return res.status(500).json({message:"Inernal server error"})
+        return res.status(500).json({message: "Internal server error"})
     }
-}                                                                                                       
+    
+}
